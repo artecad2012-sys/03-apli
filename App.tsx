@@ -15,12 +15,13 @@ const DEFAULT_COMPANY: CompanySettings = {
   terms: 'Garantía de 30 días en mano de obra. No nos hacemos responsables por equipos abandonados después de 30 días.'
 };
 
-// --- EMERGENCY STYLE INJECTOR ---
 const injectStyles = () => {
   if (typeof window === 'undefined') return;
   // @ts-ignore
   const isTailwindLoaded = typeof window.tailwind !== 'undefined';
+
   if (!isTailwindLoaded) {
+    console.log("Tailwind not detected. Injecting fallback...");
     const script = document.createElement('script');
     script.src = "https://cdn.tailwindcss.com";
     script.async = true;
@@ -46,6 +47,7 @@ const injectStyles = () => {
     };
     document.head.appendChild(script);
   }
+
   const existingFont = document.querySelector('link[href*="fonts.googleapis"]');
   if (!existingFont) {
     const link = document.createElement('link');
@@ -53,6 +55,7 @@ const injectStyles = () => {
     link.href = "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap";
     document.head.appendChild(link);
   }
+
   const styleId = 'techfix-base-styles';
   if (!document.getElementById(styleId)) {
     const style = document.createElement('style');
@@ -65,7 +68,7 @@ const injectStyles = () => {
   }
 };
 
-const LoginScreen: React.FC<{ onLogin: (remember: boolean) => void }> = ({ onLogin }) => {
+const LoginScreen: React.FC<{ onLogin: (remember: boolean) => void, companyName: string, companyLogo?: string }> = ({ onLogin, companyName, companyLogo }) => {
   const [pin, setPin] = useState('');
   const [remember, setRemember] = useState(false);
   const [error, setError] = useState(false);
@@ -80,7 +83,9 @@ const LoginScreen: React.FC<{ onLogin: (remember: boolean) => void }> = ({ onLog
     e.preventDefault();
     setLoading(true);
     setError(false);
+    
     const storedPin = localStorage.getItem('techfix_pin') || '1234';
+    
     setTimeout(() => {
       if (pin === storedPin) {
         onLogin(remember);
@@ -96,7 +101,7 @@ const LoginScreen: React.FC<{ onLogin: (remember: boolean) => void }> = ({ onLog
     <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
       {showHelp && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
             <div className="flex justify-between items-start mb-4">
               <h3 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
                 <Globe className="w-5 h-5 text-blue-600" />
@@ -109,14 +114,15 @@ const LoginScreen: React.FC<{ onLogin: (remember: boolean) => void }> = ({ onLog
             <div className="space-y-4 text-sm text-neutral-600">
               <p>
                 <strong className="text-neutral-900">¿Cómo uso esto en mi negocio?</strong><br/>
-                Para usarlo con una dirección web real, el código debe subirse a un hosting como Vercel.
+                Actualmente estás en modo "Prueba". Para usarlo con una dirección web real (ej. <em>taller-juan.com</em>), el código debe subirse a un proveedor de hosting.
               </p>
               <div className="p-3 bg-neutral-100 rounded-lg">
                 <p className="font-medium text-neutral-900 mb-1">Pasos a seguir:</p>
                 <ol className="list-decimal ml-4 space-y-1">
+                  <li>Inicia sesión con el PIN (Por defecto: <strong>1234</strong>).</li>
                   <li>Ve a la pestaña <strong>Configuración</strong>.</li>
-                  <li>Descarga el código fuente.</li>
-                  <li>Súbelo a GitHub y conéctalo a Vercel.</li>
+                  <li>Personaliza el nombre de tu negocio.</li>
+                  <li>Lee la guía de "Publicación Web" allí mismo.</li>
                 </ol>
               </div>
             </div>
@@ -140,10 +146,14 @@ const LoginScreen: React.FC<{ onLogin: (remember: boolean) => void }> = ({ onLog
         </button>
 
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-neutral-200">
-            <Smartphone className="w-8 h-8" />
+          <div className="w-20 h-20 bg-neutral-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-neutral-100 overflow-hidden">
+            {companyLogo ? (
+              <img src={companyLogo} alt="Logo" className="w-full h-full object-contain" />
+            ) : (
+              <Smartphone className="w-8 h-8 text-neutral-900" />
+            )}
           </div>
-          <h1 className="text-2xl font-bold text-neutral-900 mb-2">TechFix Pro</h1>
+          <h1 className="text-2xl font-bold text-neutral-900 mb-2">{companyName}</h1>
           <p className="text-neutral-500">Sistema de Gestión de Soporte</p>
         </div>
 
@@ -218,9 +228,11 @@ const App: React.FC = () => {
     injectStyles();
     const persistentSession = localStorage.getItem('techfix_session_persist');
     const tempSession = sessionStorage.getItem('techfix_session');
+    
     if (persistentSession === 'active' || tempSession === 'active') {
       setIsAuthenticated(true);
     }
+
     const savedTickets = localStorage.getItem('techfix_tickets');
     if (savedTickets) {
       setTickets(JSON.parse(savedTickets));
@@ -241,6 +253,7 @@ const App: React.FC = () => {
         }
       ]);
     }
+
     const savedCompany = localStorage.getItem('techfix_company');
     if (savedCompany) {
       setCompanySettings(JSON.parse(savedCompany));
@@ -343,7 +356,7 @@ const App: React.FC = () => {
   );
 
   if (!isAuthenticated) {
-    return <LoginScreen onLogin={handleLogin} />;
+    return <LoginScreen onLogin={handleLogin} companyName={companySettings.name} companyLogo={companySettings.logo} />;
   }
 
   return (
@@ -353,6 +366,7 @@ const App: React.FC = () => {
         onTabChange={setActiveTab} 
         onLogout={handleLogout}
         companyName={companySettings.name}
+        companyLogo={companySettings.logo}
       >
         {activeTab === 'dashboard' && <Dashboard />}
         {activeTab === 'new-ticket' && <TicketForm onSubmit={handleCreateTicket} />}

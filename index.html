@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>TechFix Pro - Soporte Móvil</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -10,21 +12,11 @@
       tailwind.config = {
         theme: {
           extend: {
-            fontFamily: { sans: ['Inter', 'sans-serif'] },
-            colors: {
-              neutral: {
-                50: '#f9fafb', 100: '#f3f4f6', 200: '#e5e7eb', 300: '#d1d5db',
-                400: '#9ca3af', 500: '#6b7280', 600: '#4b5563', 700: '#374151',
-                800: '#1f2937', 900: '#111827', 950: '#030712',
-              }
-            }
+            fontFamily: { sans: ['Inter', 'sans-serif'] }
           },
         },
       }
     </script>
-    <style>
-      body { font-family: 'Inter', sans-serif; background-color: #f9fafb; color: #111827; }
-    </style>
   </head>
   <body>
     <div id="root"></div>
